@@ -1,5 +1,6 @@
 package com.cryptalink.client;
 
+import com.cryptalink.common.VersionManager;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +21,10 @@ public class Client {
     private static final Logger logger = LoggerFactory.getLogger(Client.class);
     private static final String SERVER_HOST = "localhost";
     private static final int SERVER_PORT = 8888;
-    private static final String VERSION = "1.0";
     private static final String CLIENT_JAR_NAME = "cryptalink-client-jar-with-dependencies.jar";
     
     private final ExecutorService executorService;
+    private final VersionManager versionManager;
     private Socket socket;
     private BufferedReader in;
     private PrintWriter out;
@@ -31,6 +32,7 @@ public class Client {
 
     public Client() {
         this.executorService = Executors.newCachedThreadPool();
+        this.versionManager = VersionManager.getInstance();
         this.running = false;
     }
 
@@ -64,22 +66,24 @@ public class Client {
         String response = in.readLine();
         if (response != null && response.startsWith("VERSION:")) {
             String serverVersion = response.substring(8);
-            if (!VERSION.equals(serverVersion)) {
-                logger.info("发现新版本，准备更新...");
-                // 获取新版本下载链接
+            if (versionManager.isNewerVersion(serverVersion)) {
+                logger.info("發現新版本 {}，當前版本 {}，準備更新...", serverVersion, versionManager.getVersion());
+                // 獲取新版本下載鏈接
                 out.println("GET_UPDATE_URL");
                 String updateUrl = in.readLine();
                 if (updateUrl != null && updateUrl.startsWith("UPDATE_URL:")) {
                     String url = updateUrl.substring(11);
                     downloadAndUpdate(url);
                 }
+            } else {
+                logger.info("當前版本 {} 已是最新", versionManager.getVersion());
             }
         }
     }
 
     private void downloadAndUpdate(String updateUrl) {
         try {
-            logger.info("开始下载新版本...");
+            logger.info("開始下載新版本...");
             // 下载新版本
             URL url = new URL(updateUrl);
             Path tempFile = Files.createTempFile("new-client-", ".jar");

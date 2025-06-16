@@ -1,5 +1,6 @@
 package com.cryptalink.server;
 
+import com.cryptalink.common.VersionManager;
 import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +16,12 @@ public class ClientHandler implements Runnable {
     private final Socket clientSocket;
     private final String uploadDir = "uploads";
     private final DatabaseManager dbManager;
-    private static final String UPDATE_URL = "http://your-server.com/updates/cryptalink-client-jar-with-dependencies.jar";
+    private final VersionManager versionManager;
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
         this.dbManager = DatabaseManager.getInstance();
+        this.versionManager = VersionManager.getInstance();
         createUploadDirectory();
     }
 
@@ -59,12 +61,13 @@ public class ClientHandler implements Runnable {
     }
 
     private void handleVersionCheck(PrintWriter out) {
-        out.println("VERSION:1.0");
+        out.println("VERSION:" + versionManager.getVersion());
+        logger.info("发送版本信息: {}", versionManager.getVersion());
     }
 
     private void handleUpdateRequest(PrintWriter out) {
-        out.println("UPDATE_URL:" + UPDATE_URL);
-        logger.info("发送更新链接给客户端");
+        out.println("UPDATE_URL:" + versionManager.getUpdateUrl());
+        logger.info("发送更新链接给客戶端");
     }
 
     private void handleFileUpload(BufferedReader in, PrintWriter out, String fileName) throws IOException {
