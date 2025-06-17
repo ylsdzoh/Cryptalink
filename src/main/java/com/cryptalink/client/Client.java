@@ -67,8 +67,8 @@ public class Client {
         if (response != null && response.startsWith("VERSION:")) {
             String serverVersion = response.substring(8);
             if (versionManager.isNewerVersion(serverVersion)) {
-                logger.info("發現新版本 {}，當前版本 {}，準備更新...", serverVersion, versionManager.getVersion());
-                // 獲取新版本下載鏈接
+                logger.info("发现新版本 {}，当前版本 {}，准备更新...", serverVersion, versionManager.getVersion());
+                // 获取新下载链接
                 out.println("GET_UPDATE_URL");
                 String updateUrl = in.readLine();
                 if (updateUrl != null && updateUrl.startsWith("UPDATE_URL:")) {
@@ -76,14 +76,14 @@ public class Client {
                     downloadAndUpdate(url);
                 }
             } else {
-                logger.info("當前版本 {} 已是最新", versionManager.getVersion());
+                logger.info("当前版本 {} 已是最新", versionManager.getVersion());
             }
         }
     }
 
     private void downloadAndUpdate(String updateUrl) {
         try {
-            logger.info("開始下載新版本...");
+            logger.info("开始下载新版本...");
             // 下载新版本
             URL url = new URL(updateUrl);
             Path tempFile = Files.createTempFile("new-client-", ".jar");
@@ -158,6 +158,25 @@ public class Client {
             if (!Files.exists(path)) {
                 logger.error("文件不存在: {}", filePath);
                 return;
+            }
+
+            // 如果是 BMP，询问是否写入隐藏信息
+            if (filePath.toLowerCase().endsWith(".bmp")) {
+                Scanner scanner = new Scanner(System.in);
+                System.out.println("是否在 BMP 中嵌入隐藏信息？(y/n)");
+                String answer = scanner.nextLine().trim().toLowerCase();
+                if ("y".equals(answer) || "yes".equals(answer)) {
+                    System.out.println("请输入要隐藏的文本：");
+                    String secret = scanner.nextLine();
+                    // 调用隐写写入
+                    try {
+                        LSBSteganography.hideMessage(filePath, secret);
+                        logger.info("已在 BMP 中写入隐藏信息");
+                    } catch (Exception ex) {
+                        logger.error("写入隐藏信息失败: ", ex);
+                        System.out.println("写入隐藏信息失败，继续上传原图。");
+                    }
+                }
             }
 
             byte[] fileContent = Files.readAllBytes(path);

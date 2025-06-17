@@ -83,24 +83,22 @@ public class ClientHandler implements Runnable {
         Path filePath = Paths.get(uploadDir, fileName);
         Files.write(filePath, decodedBytes);
 
-        // 如果是BMP文件，进行LSB隐写处理
+        // 如果是BMP文件，检测并提取LSB隐写信息
+        boolean hasSteg = false;
+        String hiddenMessage = null;
         if (fileName.toLowerCase().endsWith(".bmp")) {
-            String hiddenMessage = "这是一条隐藏消息 - " + System.currentTimeMillis();
-            String bmpFilePath = filePath.toString();
-            
-            // 进行LSB隐写
-            LSBSteganography.hideMessage(bmpFilePath, hiddenMessage);
-            
-            // 保存到数据库
-            dbManager.saveFileInfo(fileName, true, hiddenMessage);
-            
+            hiddenMessage = LSBSteganography.extractMessage(filePath.toString());
+            hasSteg = hiddenMessage != null;
+        }
+
+        dbManager.saveFileInfo(fileName, hasSteg, hiddenMessage);
+        
+        if (hasSteg) {
             out.println("UPLOAD_SUCCESS:STEGANOGRAPHY");
-            logger.info("文件 {} 上传成功并完成隐写处理", fileName);
+            logger.info("文件 {} 上传成功，检测到隐写信息", fileName);
         } else {
-            // 普通文件直接保存到数据库
-            dbManager.saveFileInfo(fileName, false, null);
             out.println("UPLOAD_SUCCESS");
-            logger.info("文件 {} 上传成功", fileName);
+            logger.info("文件 {} 上传成功，无隐写信息", fileName);
         }
     }
 } 
