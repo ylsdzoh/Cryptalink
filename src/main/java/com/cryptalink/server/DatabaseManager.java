@@ -37,7 +37,7 @@ public class DatabaseManager {
             CREATE TABLE IF NOT EXISTS file_info (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 filename TEXT NOT NULL,
-                upload_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                upload_time TEXT DEFAULT (datetime('now', 'localtime')),
                 has_steganography BOOLEAN DEFAULT FALSE,
                 hidden_message TEXT
             )
@@ -58,6 +58,17 @@ public class DatabaseManager {
             logger.info("文件信息已保存到数据库: {}", filename);
         } catch (SQLException e) {
             logger.error("保存文件信息失败: ", e);
+        }
+    }
+
+    public ResultSet queryFileInfo(String filename) {
+        String sql = "SELECT * FROM file_info WHERE filename = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, filename);
+            return pstmt.executeQuery();
+        } catch (SQLException e) {
+            logger.error("查询文件信息失败: ", e);
+            return null;
         }
     }
 

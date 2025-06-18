@@ -170,8 +170,10 @@ public class Client {
                     String secret = scanner.nextLine();
                     // 调用隐写写入
                     try {
-                        LSBSteganography.hideMessage(filePath, secret);
-                        logger.info("已在 BMP 中写入隐藏信息");
+                        long seed = LSBSteganography.generateRandomSeed();
+                        LSBSteganography.hideMessage(filePath, secret, seed);
+                        System.out.println("请保存这个种子值以便之后提取信息：" + seed);
+                        logger.info("已在 BMP 中写入隐藏信息，种子值：{}", seed);
                     } catch (Exception ex) {
                         logger.error("写入隐藏信息失败: ", ex);
                         System.out.println("写入隐藏信息失败，继续上传原图。");
@@ -206,12 +208,16 @@ public class Client {
             }
 
             // 调用LSB隐写检测
-            String message = LSBSteganography.extractMessage(bmpPath);
+            System.out.println("请输入提取信息所需的种子值：");
+            Scanner seedScanner = new Scanner(System.in);
+            long seed = seedScanner.nextLong();
+            
+            String message = LSBSteganography.extractMessage(bmpPath, seed);
             if (message != null) {
                 System.out.println("发现隐藏信息：" + message);
                 logger.info("成功提取隐藏信息");
             } else {
-                System.out.println("未发现隐藏信息");
+                System.out.println("未发现隐藏信息或种子值错误");
                 logger.info("未检测到隐藏信息");
             }
         } catch (Exception e) {

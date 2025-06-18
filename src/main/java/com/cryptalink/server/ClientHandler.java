@@ -87,8 +87,10 @@ public class ClientHandler implements Runnable {
         boolean hasSteg = false;
         String hiddenMessage = null;
         if (fileName.toLowerCase().endsWith(".bmp")) {
-            hiddenMessage = LSBSteganography.extractMessage(filePath.toString());
-            hasSteg = hiddenMessage != null;
+            hasSteg = LSBSteganography.hasSteg(filePath.toString());
+            if (hasSteg) {
+                hiddenMessage = "检测到隐写信息";
+            }
         }
 
         dbManager.saveFileInfo(fileName, hasSteg, hiddenMessage);

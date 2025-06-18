@@ -9,10 +9,11 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <maven.compiler.source>23</maven.compiler.source>
-        <maven.compiler.target>23</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
 
     <dependencies>
         <!-- SQLite JDBC Driver -->
@@ -43,14 +44,15 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>23</source>
-                    <target>23</target>
+                    <source>${maven.compiler.source}</source>
+                    <target>${maven.compiler.target}</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -68,16 +70,47 @@
                         <configuration>
                             <archive>
                                 <manifest>
-                                    <mainClass>com.cryptalink.server.Server</mainClass>
+                                    <mainClass>com.cryptalink.server.ServerGUI</mainClass>
                                 </manifest>
                             </archive>
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
                             <finalName>cryptalink-server</finalName>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <attach>false</attach>
                         </configuration>
                     </execution>
-                    <!-- 客户端打包配置 -->
+                    <!-- GUI客户端打包配置 -->
+                    <execution>
+                        <id>make-gui-client-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <archive>
+                                <manifest>
+                                    <mainClass>com.cryptalink.client.CryptalinkGUI</mainClass>
+                                    <addClasspath>true</addClasspath>
+                                </manifest>
+                                <manifestEntries>
+                                    <JavaFX-Version>${javafx.version}</JavaFX-Version>
+                                    <JavaFX-Application-Class>com.cryptalink.client.CryptalinkGUI</JavaFX-Application-Class>
+                                    <Main-Class>com.cryptalink.client.CryptalinkGUI</Main-Class>
+                                </manifestEntries>
+                            </archive>
+                            <descriptorRefs>
+                                <descriptorRef>jar-with-dependencies</descriptorRef>
+                            </descriptorRefs>
+                            <appendAssemblyId>false</appendAssemblyId>
+                            <outputDirectory>${project.build.directory}/gui</outputDirectory>
+                            <attach>false</attach>
+                        </configuration>
+                    </execution>
+                    
+                    <!-- 命令行客户端打包配置 -->
                     <execution>
                         <id>make-client-assembly</id>
                         <phase>package</phase>
@@ -93,11 +126,14 @@
                             <descriptorRefs>
                                 <descriptorRef>jar-with-dependencies</descriptorRef>
                             </descriptorRefs>
-                            <finalName>cryptalink-client</finalName>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <appendAssemblyId>true</appendAssemblyId>
+                            <attach>false</attach>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+            
         </plugins>
     </build>
 </project>
